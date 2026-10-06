@@ -1,0 +1,38 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap');
+
+.jk-current { min-height:100vh; background:#f3eddf; color:#35281f; font-family:'DM Sans',sans-serif; }
+.jk-current * { box-sizing:border-box; }
+.jk-current .hero { max-width:1280px; margin:0 auto; padding:28px 5.2% 76px; display:grid; grid-template-columns:.82fr 1.18fr; align-items:center; gap:5.5%; min-height:580px; }
+.jk-current .eyebrow { margin:0 0 20px; font:10px 'DM Mono',monospace; letter-spacing:.16em; text-transform:uppercase; color:#9c5036; }
+.jk-current .hero h1 { margin:0; font:clamp(64px,5.4vw,78px)/.94 'Fraunces',serif; letter-spacing:-.065em; font-weight:500; max-width:570px; }
+.jk-current .hero-copy { max-width:370px; margin:25px 0 26px; font-size:15px; line-height:1.75; color:#6c5a48; }
+.jk-current .actions { display:flex; flex-wrap:wrap; gap:12px; align-items:center; }
+.jk-current .button { min-height:46px; display:inline-flex; align-items:center; justify-content:center; gap:12px; padding:0 19px; border:1px solid #a34e32; background:#a34e32; color:#fff6e8; text-decoration:none; font:11px 'DM Mono',monospace; }
+.jk-current .button-outline { background:transparent; color:#35281f; border-color:#bba98f; }
+.jk-current .hero-note { margin-top:22px; font:10px 'DM Mono',monospace; color:#807260; }
+.jk-current .bread-art { min-height:436px; position:relative; isolation:isolate; display:grid; place-items:center; background:#c3a77f; overflow:hidden; }
+.jk-current .bread-art::before { content:""; position:absolute; inset:14px; border:1px solid rgba(250,241,220,.55); z-index:2; pointer-events:none; }
+.jk-current .bread-art::after { content:""; position:absolute; inset:0; opacity:.26; background:radial-gradient(ellipse at 48% 58%,transparent 0 35%,#795f41 90%),repeating-linear-gradient(115deg,transparent 0 13px,rgba(252,233,194,.17) 14px 15px); mix-blend-mode:multiply; z-index:-1; }
+.jk-current .art-sun { position:absolute; width:210px; height:210px; border-radius:50%; top:11%; left:16%; background:#dfc99e; opacity:.82; }
+.jk-current .loaf { position:relative; width:min(72%,420px); aspect-ratio:1.22; border-radius:52% 48% 44% 46% / 50% 56% 40% 43%; background:radial-gradient(ellipse at 37% 28%,#dcb880 0 9%,transparent 35%),radial-gradient(ellipse at 62% 67%,#815336 0 4%,transparent 57%),linear-gradient(145deg,#b77d47 8%,#d4a669 43%,#98613a 87%); transform:rotate(-12deg); box-shadow:inset -14px -17px 27px #65412d66,inset 10px 11px 18px #f6d7a25c,0 24px 32px #59422b55; }
+.jk-current .loaf:before { content:""; position:absolute; left:22%; top:25%; width:62%; height:9%; border-radius:50%; background:#70472d; transform:rotate(-8deg); box-shadow:0 13px 0 #71492e,0 26px 0 #71492e,0 39px 0 #71492e; clip-path:polygon(0 40%,100% 0,100% 100%,0 60%); opacity:.8; }
+.jk-current .crumb { position:absolute; width:9px; height:6px; border-radius:60%; background:#704b30; box-shadow:88px 45px #704b30,-64px 79px #704b30,41px -37px #704b30,130px -8px #704b30,-105px 22px #704b30; transform:rotate(33deg); }
+.jk-current .art-stamp { position:absolute; right:7%; bottom:7%; width:86px; height:86px; border:1px solid #f5e8cd; border-radius:50%; display:grid; place-items:center; text-align:center; color:#fff3da; font:9px/1.55 'DM Mono',monospace; letter-spacing:.08em; transform:rotate(9deg); }
+.jk-current .art-caption { position:absolute; left:7%; bottom:8%; color:#fff4dd; font:10px 'DM Mono',monospace; letter-spacing:.1em; text-transform:uppercase; }
+.jk-current .section { padding:100px 5.2%; }
+.jk-current .section-inner { max-width:1110px; margin:auto; }
+.jk-current .section h2 { margin:0; font:clamp(45px,6.5vw,76px)/.98 'Fraunces',serif; font-weight:500; letter-spacing:-.055em; }
+.jk-current .customer-love { background:#f5f0e5; }
+.jk-current .customer-love-inner { display:grid; grid-template-columns:1fr 1fr; gap:10%; align-items:end; }
+.jk-current .customer-love h2 { margin-top:0; }
+.jk-current .customer-love-copy p { max-width:430px; color:#6c5a48; font-size:15px; line-height:1.75; }
+.jk-current .customer-love-copy .text-link { display:inline-block; color:#a34e32; font:11px 'DM Mono',monospace; text-decoration:none; border-bottom:1px solid #a34e32; padding-bottom:5px; }
+@media(max-width:760px) {
+  .jk-current .hero { grid-template-columns:1fr; padding:43px 5% 47px; gap:33px; min-height:unset; }
+  .jk-current .hero h1 { font-size:clamp(67px,17vw,95px); }
+  .jk-current .bread-art { min-height:310px; }
+  .jk-current .loaf { width:69%; }
+  .jk-current .section { padding:71px 5%; }
+  .jk-current .customer-love-inner { grid-template-columns:1fr; gap:38px; }
+}
+@media(max-width:420px) { .jk-current .hero h1 { font-size:clamp(48px,13vw,58px); } }
