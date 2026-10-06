@@ -1,0 +1,422 @@
+Create a premium, warm, conversion-focused website for **Jeremys Bread Kitchen**, an organic artisan bakery in Åbyhøj, Aarhus, Denmark.
+
+The goal is NOT to make the bakery look like a large commercial chain. The website should preserve the feeling of a small, authentic, highly personal bakery where bread is made carefully in small batches.
+
+The primary business goal is to turn people who discover Jeremys through Facebook, Instagram, Google, or word-of-mouth into customers who want to **see what's available, reserve/order products, and visit the bakery**.
+
+## BRAND FEEL
+
+The design should feel:
+
+- Handmade
+- Warm
+- Authentic
+- Premium but not luxurious
+- Organic
+- Local
+- Scandinavian
+- Craft-focused
+- Personal
+- Appetite-inducing
+
+Avoid:
+- Corporate design
+- Generic bakery templates
+- Excessive animations
+- Stock photography
+- Fake luxury branding
+- Overly complicated navigation
+- “AI” language
+- Anything that makes the bakery look mass-produced
+
+Use the real bakery photographs provided by the client wherever possible. The bread and pastries should be the visual focus.
+
+## HOMEPAGE STRUCTURE
+
+### 1. HERO SECTION
+
+Use a large, beautiful real photograph of Jeremys bread as the hero background/image.
+
+Headline:
+
+**Organic bread, baked with care in Åbyhøj.**
+
+Supporting text:
+
+**Sourdough bread, pastries, cakes and more — handmade in small batches with carefully selected ingredients.**
+
+Primary CTA:
+
+**ORDER / PRE-ORDER**
+
+Secondary CTA:
+
+**SEE THIS WEEK'S BAKES**
+
+Make the primary CTA visually obvious.
+
+The first screen should immediately communicate:
+
+1. What they sell
+2. Why it is special
+3. Where they are
+4. What the visitor can do next
+
+Do not put a large paragraph above the fold.
+
+---
+
+### 2. THIS WEEK AT JEREMYS
+
+Create a highly visual product section immediately below the hero.
+
+Heading:
+
+**Fresh from the bakery**
+
+Show products in attractive cards with large photographs.
+
+Categories:
+
+- Bread
+- Sourdough
+- Pastries
+- Cakes
+- Buns
+- Pizza dough
+
+Each product card should contain:
+
+- Photograph
+- Product name
+- Short appetizing description
+- Price
+- Availability
+- Order / Reserve button
+
+Design this section so that the visitor immediately thinks:
+
+**“That looks good. I want one.”**
+
+Use real product photography rather than generic stock images.
+
+---
+
+### 3. LIMITED BATCH / PRE-ORDER MESSAGE
+
+Create a visually distinctive section communicating the small-batch nature of the bakery.
+
+Headline:
+
+**Small batches. When they're gone, they're gone.**
+
+Supporting text:
+
+**Our bread and pastries are made in limited quantities. Reserve yours ahead of time so you don't miss out.**
+
+CTA:
+
+**RESERVE YOUR BAKE**
+
+This should create natural scarcity without sounding manipulative.
+
+---
+
+### 4. WHY JEREMYS
+
+Create a short storytelling section.
+
+Headline:
+
+**Bread made the way we believe it should be.**
+
+Explain the bakery's philosophy around:
+
+- Organic ingredients
+- Long fermentation
+- Handmade production
+- Small batches
+- Traditional craftsmanship
+- Quality over quantity
+
+Keep the copy short and human.
+
+Use a photograph of Jeremy, the bakery, or the production process if available.
+
+Do not make this section sound corporate.
+
+---
+
+### 5. PRODUCT PHOTOGRAPHY / VISUAL STORY
+
+Create a full-width visual section using the provided bakery photographs.
+
+Show:
+
+- Fresh bread
+- Pastries
+- Cakes
+- Dough
+- Bakery shelves
+- Production
+
+Use minimal text.
+
+The objective is to make the visitor hungry.
+
+---
+
+### 6. CUSTOMER LOVE
+
+Create a social-proof section.
+
+Heading:
+
+**Loved by our customers**
+
+Display 3–5 short customer testimonials from genuine public reviews once verified.
+
+Include the overall review rating if it is verified.
+
+Do not fabricate testimonials.
+
+Add:
+
+**See more reviews**
+
+linking to the appropriate review platform.
+
+The design should make the bakery feel trusted and established within the local community.
+
+---
+
+### 7. FACEBOOK / COMMUNITY
+
+Jeremy's Facebook page is an important part of the business and already has an active audience.
+
+Create a section called:
+
+**Fresh from Jeremys**
+
+Show recent Facebook/Instagram-style posts or a visual social feed if technically possible.
+
+Supporting text:
+
+**Follow us for fresh bakes, what's coming out of the oven, and what's available this week.**
+
+CTA:
+
+**FOLLOW JEREMYS**
+
+The website should complement Facebook rather than replace it.
+
+The desired customer journey is:
+
+**Facebook post → Website → Product → Order/Reserve → Pickup**
+
+---
+
+### 8. ORDER / PRE-ORDER
+
+Create a dedicated ordering experience.
+
+The visitor should be able to:
+
+1. Choose a product
+2. Select quantity
+3. Select available pickup date
+4. Provide name/contact information
+5. Confirm the order
+6. Receive confirmation
+
+Keep the process extremely simple.
+
+If a full payment/order system cannot be implemented yet, create the complete UI/UX and structure so it can later connect to an appropriate ordering/payment system.
+
+The ordering system must support the reality of a small bakery where product availability can change and quantities can be limited.
+
+---
+
+### 9. VISIT US
+
+Create a clear location section.
+
+**Jeremys Bread Kitchen**
+
+Yrsavej 34  
+8230 Åbyhøj  
+Aarhus, Denmark
+
+Include:
+
+- Map
+- Directions
+- Opening hours
+- Pickup information
+- Phone
+- Email
+
+Opening hours should be treated as editable content rather than hard-coded assumptions.
+
+Contact:
+
+**+45 22 16 22 67**
+
+**kontakt@jeremys.dk**
+
+---
+
+### 10. CONTACT
+
+Make contacting the bakery extremely easy.
+
+Include:
+
+- Phone
+- Email
+- Facebook Messenger
+- Instagram
+
+Add a simple contact form for general questions and larger/special orders.
+
+Potential form options:
+
+**What can we help with?**
+
+- General question
+- Bread order
+- Cake order
+- Event / catering
+- Wholesale
+- Other
+
+---
+
+## NAVIGATION
+
+Keep navigation minimal:
+
+**Home**
+**Order**
+**This Week**
+**Our Story**
+**Visit**
+**Contact**
+
+Always keep a prominent:
+
+**ORDER / PRE-ORDER**
+
+button in the navigation.
+
+On mobile, make the ordering CTA especially easy to reach.
+
+---
+
+## MOBILE FIRST
+
+A large percentage of visitors may discover Jeremys through Facebook or Instagram on their phones.
+
+The mobile experience therefore needs to be excellent.
+
+Prioritize:
+
+- Fast loading
+- Large product images
+- Large buttons
+- Simple navigation
+- Easy ordering
+- Click-to-call
+- Click-to-message
+- Map/directions
+
+A visitor should be able to go from a Facebook post to placing an order with as little friction as possible.
+
+---
+
+## CONVERSION PSYCHOLOGY
+
+Design the website around this sequence:
+
+**DISCOVER → DESIRE → TRUST → AVAILABILITY → ACTION**
+
+The visitor should first see beautiful food.
+
+Then understand why it is special.
+
+Then see that other customers love it.
+
+Then understand what is available.
+
+Then have an obvious way to order/reserve.
+
+Do not overwhelm the visitor with information before showing the products.
+
+The website should sell the experience of getting freshly made artisan bread—not simply provide information about a bakery.
+
+---
+
+## IMPORTANT BUSINESS PRINCIPLE
+
+Do not position Jeremys as a mass-market bakery.
+
+The opportunity is to help the bakery **sell more without losing the craftsmanship and personal character that makes people love it.**
+
+The website should make the business feel like:
+
+**“A special local bakery that you want to discover and come back to.”**
+
+not:
+
+**“A large bakery chain.”**
+
+---
+
+## FUTURE EXPANSION
+
+Structure the website so it can eventually support:
+
+- Online pre-orders
+- Scheduled pickup
+- Special cake orders
+- Catering/event orders
+- Wholesale inquiries
+- Local delivery
+- Customer accounts
+- Product availability management
+- Email/newsletter
+- Gift cards
+- Potential expansion beyond Aarhus
+
+Do NOT imply that Jeremys currently offers these services unless confirmed.
+
+Build the architecture so they can be added later.
+
+---
+
+## VISUAL DIRECTION
+
+Use:
+
+- Warm natural photography
+- Large food photography
+- Generous white/cream space
+- Subtle Scandinavian typography
+- Organic shapes where appropriate
+- Minimal animations
+- Clear buttons
+- Elegant but approachable typography
+
+The photographs should do most of the selling.
+
+The website should feel like you can almost smell the bread through the screen.
+
+## FINAL QUALITY TEST
+
+Before considering the website finished, ask:
+
+“If someone discovers Jeremys through a Facebook post at 8 AM, can they understand what Jeremys sells, see something they want, know where to get it, and reserve/order it within 30–60 seconds?”
+
+If not, simplify the experience.
+
+The website should ultimately save the bakery owner time—not create another complicated system for them to manage.

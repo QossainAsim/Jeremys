@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Jeremys Bread Kitchen"
+description = "A warm, mobile-first website for Jeremys Bread Kitchen in Åbyhøj, Aarhus, helping local customers discover fresh small-batch bakes, send pre-order requests, and find the bakery."
+version = "1.0.0"
+id = "artifacts/jeremys-bread-kitchen"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 18517
+
+[services.development]
+run = "pnpm --filter @workspace/jeremys-bread-kitchen run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/jeremys-bread-kitchen", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/jeremys-bread-kitchen/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "18517"
+BASE_PATH = "/"
