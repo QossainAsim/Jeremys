@@ -1,0 +1,55 @@
+The Jeremys Bread Kitchen site already exists. Do NOT rebuild it. Keep the current colours, fonts, layout and photos. Make only the changes below, editing existing files in place, in ONE pass. Keep replies short. Do not invent prices, reviews, opening hours, payment methods or claims. Use the placeholders I mark as EDIT.
+
+1. LANGUAGE
+Danish is the default. Add a small DA/EN toggle. Translate all visible text. Tone: short, warm, understated. Examples: "Godt brød tager tid.", "Når den er væk, er den væk.", "Vi ses."
+The English version must lead with: address, opening hours, a one-line description ("Organic small-batch bakery in Åbyhøj, Aarhus") and a Directions button.
+
+2. HERO
+- Live badge "Åbent nu / Lukket i dag" read from ONE editable hours object in script.js (sample hours, EDIT). Include a way to mark a closed day or holiday note.
+- Add the award badge "Stiftstidende: Byens Bedste 2026" and a small "90-100% økologi" mark.
+- Primary button: "Se dagens brød" (scrolls to section 3). Secondary: "Find vej" (Google Maps).
+- Under the buttons, three contact options in a row: Ring (tel:), SMS (sms:), Messenger (link EDIT). Phone: +45 22 16 22 67.
+
+3. NEW SECTION "I dag hos Jeremys" (right after the hero)
+4-6 cards with photo, name and status tag: Bagt i dag / Kommer senere / Udsolgt. Drive them from one editable array in script.js. No prices. Show one line: "Priser får du i butikken eller på telefon. Udvalget skifter fra dag til dag."
+
+4. "HVAD BAGER VI?" SECTION
+Replace the current 6 cards with a filterable list. Chips: Alle, Brød, Boller, Wienerbrød, Kager, Sæson. Each item has a photo slot, Danish name, one short line and a small "Spørg om det" button that opens a choice: Ring / SMS / Messenger. Add "Spørg os om allergener." Remove all "Ask for today's price" text.
+Brød: Surdejsbrød, Mørkt frøbrød, Lange frøbrød, Landbrød, Ciabatta, Focaccia med rosmarin, Fladbrød med urter
+Boller: Birkes/valmuefrøboller, Frøboller, Hvide boller, Hot cross buns
+Wienerbrød: Croissanter, Chokoladecroissanter, Mandelcroissanter, Kanelsnegle, Nøddesnegle, Wienerbrød med creme, Wienerbrød med jordbær
+Kager: Jordbærsnitter, Pavlova med bær, Citrontærte med marengs, Karamel-chokoladesnitter, Hindbærkage, Chokoladekage med hindbær, Gulerodskage, Tartelettes, Vandbakkelser, Eclairs, Småkager
+Sæson: Fastelavnsboller, Påskeboller, Sommerkager med bær
+(Names are drafts; owners will confirm.)
+
+5. NEW SECTION "Sådan bager vi"
+Strip of 4 photo slots with short captions (dough, trays, ovens, racks) and one short paragraph on organic flour and slow fermentation.
+
+6. ABOUT
+"Mød Jeremy og Mette": photo slot, 3-4 warm sentences (EDIT, owners will rewrite), tiny timeline Mejlgade → Yrsavej.
+
+7. REVIEWS
+Remove the empty "no reviews" block. Show the award badge and a link "Se anmeldelser på Google". No made-up quotes. Add a slot for real customer quotes (EDIT, only with permission).
+
+8. FORMS
+Replace both mailto forms with ONE short form: Navn, Telefon, Hvad vil du spørge om / hvilket brød, Dag, Besked. Title it "Spørg efter brød" (not a booking). Send via a form service to the bakery email (EDIT). Success message: "Tak! Vi vender tilbage hurtigst muligt." Add a note: "Det er en forespørgsel, ikke en bestilling, før vi bekræfter."
+
+9. FIND US
+Address Yrsavej 34, 8230 Åbyhøj, hours, map, "Find vej" button, and a shopfront photo slot so people recognise the door. Add an optional "Parkering / besøgsnote" line (EDIT).
+
+10. MOBILE
+Sticky bottom bar: Ring · Find vej · Spørg. Small and clean. Large tap targets. Respect prefers-reduced-motion.
+
+11. TYPOGRAPHY CLEANUP
+Replace tiny spaced capital labels (e.g. "A NOTE FROM THE OVEN / 01") with normal sentence-case text. Keep big serif headlines. Make sure body text is readable on phones.
+
+12. PHOTOS
+Use the original photos I upload to /images. Match them to slots by filename. Descriptive Danish alt text, lazy loading, WebP.
+
+13. TRACKING (simple, privacy-friendly)
+Count taps on: Ring, SMS, Messenger, Find vej, Spørg-formular, Se dagens brød. Use a lightweight analytics tool and no cookies where possible. No payments.
+
+14. SEO
+Danish title and meta description, one H1, Open Graph tags, LocalBusiness JSON-LD (name, address, phone, opening hours only if I provide them).
+
+Finish by telling me in 5 lines how to change the hours, today's bakes and photos.
