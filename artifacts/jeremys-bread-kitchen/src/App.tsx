@@ -1,340 +1,226 @@
-import { useEffect, useState, type FormEvent } from 'react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ErrorBoundary } from '@/components/error-boundary';
-import { Toaster } from '@/components/ui/toaster';
-import { TooltipProvider } from '@/components/ui/tooltip';
 
-const queryClient = new QueryClient();
-const email = 'kontakt@jeremys.dk';
-const phone = '+45 22 16 22 67';
-const address = 'Yrsavej 34, 8230 Åbyhøj, Aarhus, Denmark';
-const productOptions = ['Bread', 'Sourdough', 'Pastries', 'Cakes', 'Buns', 'Pizza dough'];
-const bakeCards = [
-  { name: 'Bread', description: 'Ask what loaf is coming out of the oven this week.', note: 'Small batch · price on request', image: 'jeremys-bread.jpg', alt: 'Golden artisan bread with a deeply scored crust' },
-  { name: 'Sourdough', description: 'Slow-fermented bread, made with time and care.', note: 'Availability changes · ask first', image: 'jeremys-sourdough.jpg', alt: 'Rustic sourdough loaf with a blistered crust' },
-  { name: 'Pastries', description: 'Find out what is sweet or savory in the next bake.', note: 'Small batch · price on request', image: 'jeremys-pastries.jpg', alt: 'Freshly baked layered pastries' },
-  { name: 'Cakes', description: 'Ask about the week’s cakes or share a special request.', note: 'By request · details confirmed by email', image: 'jeremys-cakes.jpg', alt: 'Simple handmade cake with a golden, lightly browned top' },
-  { name: 'Buns', description: 'Handmade little bakes for the table or the walk home.', note: 'Availability changes · ask first', image: 'jeremys-buns.jpg', alt: 'A tray of freshly baked golden buns' },
-  { name: 'Pizza dough', description: 'Ask when the next small batch of dough will be ready.', note: 'Small batch · price on request', image: 'jeremys-pizza-dough.jpg', alt: 'Hand-shaped pizza dough ready for its next rise' },
-];
-const inquiryTypes = ['General question', 'Bread order', 'Cake order', 'Event / catering', 'Wholesale', 'Other'];
-
-function setMeta(name: string, content: string, property = false) {
-  const attribute = property ? 'property' : 'name';
-  let tag = document.head.querySelector<HTMLMetaElement>(`meta[${attribute}="${name}"]`);
-  if (!tag) {
-    tag = document.createElement('meta');
-    tag.setAttribute(attribute, name);
-    document.head.appendChild(tag);
+type Lang = 'da' | 'en';
+type BakeStatus = 'Bagt i dag' | 'Kommer senere' | 'Udsolgt' | null;
+type Bake = { name: string; status: BakeStatus; image: string };
+type Hours = Record<string, null | { open: string; close: string }>;
+declare global {
+  interface Window {
+    JeremysConfig: {
+      hours: Hours;
+      holidayClosedNote: string;
+      todayBakes: Bake[];
+      messengerUrl: string;
+      visitNote: string;
+    };
   }
-  tag.content = content;
+}
+const cfg = window.JeremysConfig;
+const phone = '+4522162267';
+const address = 'Yrsavej 34, 8230 Åbyhøj, Aarhus, Denmark';
+const maps = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+const sms = `sms:${phone}?body=${encodeURIComponent('Hej Jeremys, jeg vil gerne spørge om...')}`;
+const weekdayKeys = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+const weekdayDa = ['Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag', 'Søndag'];
+const weekdayEn = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+const categories = ['Brød', 'Boller', 'Wienerbrød', 'Kager', 'Sæson'] as const;
+const categoryEn: Record<string, string> = { 'Alle': 'All', 'Brød': 'Bread', 'Boller': 'Buns', 'Wienerbrød': 'Pastries', 'Kager': 'Cakes', 'Sæson': 'Seasonal' };
+const names: Record<string, string[]> = {
+  Brød: ['Surdejsbrød', 'Mørkt frøbrød', 'Lange frøbrød', 'Landbrød', 'Ciabatta', 'Focaccia med rosmarin', 'Fladbrød med urter'],
+  Boller: ['Birkes/valmuefrøboller', 'Frøboller', 'Hvide boller', 'Hot cross buns'],
+  Wienerbrød: ['Croissanter', 'Chokoladecroissanter', 'Mandelcroissanter', 'Kanelsnegle', 'Nøddesnegle', 'Wienerbrød med creme', 'Wienerbrød med jordbær'],
+  Kager: ['Jordbærsnitter', 'Pavlova med bær', 'Citrontærte med marengs', 'Karamel-chokoladesnitter', 'Hindbærkage', 'Chokoladekage med hindbær', 'Gulerodskage', 'Tartelettes', 'Vandbakkelser', 'Eclairs', 'Småkager'],
+  Sæson: ['Fastelavnsboller', 'Påskeboller', 'Sommerkager med bær'],
+};
+const englishNames: Record<string, string> = {
+  'Surdejsbrød': 'Sourdough loaf', 'Mørkt frøbrød': 'Dark seeded bread', 'Lange frøbrød': 'Long seeded loaves', 'Landbrød': 'Country loaf',
+  'Ciabatta': 'Ciabatta', 'Focaccia med rosmarin': 'Rosemary focaccia', 'Fladbrød med urter': 'Herb flatbread',
+  'Birkes/valmuefrøboller': 'Poppy seed buns', 'Frøboller': 'Seeded buns', 'Hvide boller': 'White rolls', 'Hot cross buns': 'Hot cross buns',
+  'Croissanter': 'Croissants', 'Chokoladecroissanter': 'Chocolate croissants', 'Mandelcroissanter': 'Almond croissants', 'Kanelsnegle': 'Cinnamon swirls',
+  'Nøddesnegle': 'Nut swirls', 'Wienerbrød med creme': 'Custard pastry', 'Wienerbrød med jordbær': 'Strawberry pastry',
+  'Jordbærsnitter': 'Strawberry slices', 'Pavlova med bær': 'Berry pavlova', 'Citrontærte med marengs': 'Lemon meringue tart',
+  'Karamel-chokoladesnitter': 'Caramel chocolate slices', 'Hindbærkage': 'Raspberry cake', 'Chokoladekage med hindbær': 'Chocolate raspberry cake',
+  'Gulerodskage': 'Carrot cake', 'Tartelettes': 'Tartlets', 'Vandbakkelser': 'Cream puffs', 'Eclairs': 'Éclairs', 'Småkager': 'Biscuits',
+  'Fastelavnsboller': 'Fastelavnsboller', 'Påskeboller': 'Easter buns', 'Sommerkager med bær': 'Summer berry cakes',
+};
+const imageForCategory: Record<string, string> = {
+  Brød: '/images/jeremys-bread.jpg', Boller: '/images/jeremys-buns.jpg',
+  Wienerbrød: '/images/jeremys-pastries.jpg', Kager: '/images/jeremys-cakes.jpg', Sæson: '/images/jeremys-pastries.jpg',
+};
+const description = (lang: Lang, category: string) => {
+  if (lang === 'en') return ({
+    Brød: 'Small-batch bread, made with time.', Boller: 'A little something for the table.',
+    Wienerbrød: 'Layered pastries, baked by hand.', Kager: 'A sweet bake, made in small batches.',
+    Sæson: 'A seasonal bake; ask us what is possible.',
+  } as Record<string, string>)[category];
+  return ({
+    Brød: 'Brød bagt i små hold med tid og omhu.', Boller: 'En lille bolle til bordet eller turen hjem.',
+    Wienerbrød: 'Lag på lag, bagt i hånden.', Kager: 'Sødt bagværk i små hold.',
+    Sæson: 'Sæsonens bagværk – spørg os, hvad der er muligt.',
+  } as Record<string, string>)[category];
+};
+
+function hoursView(hours: Hours, lang: Lang, date: Date) {
+  const weekday = new Intl.DateTimeFormat('en', { timeZone: 'Europe/Copenhagen', weekday: 'short' }).format(date);
+  const dayIndex = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].indexOf(weekday);
+  const keys = weekdayKeys;
+  const day = hours[keys[dayIndex]];
+  const display = (value: Hours[string]) => value ? `${value.open}–${value.close}` : (lang === 'da' ? 'Opdateres' : 'To be updated');
+  const todayHours = day ? `${day.open}–${day.close}` : null;
+  let status = lang === 'da' ? 'Åbningstider opdateres' : 'Hours to be updated';
+  if (day) {
+    const parts = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Copenhagen', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(date).split(':');
+    const minute = Number(parts[0]) * 60 + Number(parts[1]);
+    const [oh, om] = day.open.split(':').map(Number);
+    const [ch, cm] = day.close.split(':').map(Number);
+    status = minute >= oh * 60 + om && minute < ch * 60 + cm ? (lang === 'da' ? 'Åbent nu' : 'Open now') : (lang === 'da' ? 'Lukket nu' : 'Closed now');
+  }
+  return { status, today: todayHours, list: weekdayKeys.map((key, index) => `${lang === 'da' ? weekdayDa[index] : weekdayEn[index]} · ${display(hours[key])}`) };
+}
+
+function ContactChoices({ lang, onClose }: { lang: Lang; onClose: () => void }) {
+  const da = lang === 'da';
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose;
+  useEffect(() => {
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') closeRef.current();
+    };
+    document.addEventListener('keydown', closeOnEscape);
+    document.querySelector<HTMLButtonElement>('.choice-close')?.focus();
+    return () => document.removeEventListener('keydown', closeOnEscape);
+  }, []);
+  return <div className="choice-backdrop" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+    <section className="choice-dialog" role="dialog" aria-modal="true" aria-labelledby="choice-title" data-testid="dialog-contact-choices">
+      <button className="choice-close" onClick={onClose} aria-label={da ? 'Luk' : 'Close'} data-testid="button-close-choices">×</button>
+      <p className="eyebrow">{da ? 'En hurtig forespørgsel' : 'A quick question'}</p>
+      <h2 id="choice-title">{da ? 'Spørg os' : 'Get in touch'}</h2>
+      <p>{da ? 'Fortæl os, hvad du er nysgerrig på.' : 'Tell us what you would like to ask about.'}</p>
+      <div className="choice-links">
+        <a href={`tel:${phone}`} className="button" data-testid="link-dialog-call">{da ? 'Ring' : 'Call'} <span>↗</span></a>
+        <a href={sms} className="button button-outline" data-testid="link-dialog-sms">SMS <span>↗</span></a>
+        {cfg.messengerUrl.trim() ? <a href={cfg.messengerUrl} target="_blank" rel="noopener noreferrer" className="button button-outline" data-testid="link-dialog-messenger">Messenger <span>↗</span></a> : <span className="disabled-choice" aria-disabled="true">{da ? 'Messenger (ikke opsat)' : 'Messenger (not set up)'}</span>}
+      </div>
+      <p className="request-note">{da ? 'Det er en forespørgsel, ikke en bestilling, før vi bekræfter.' : 'This is an inquiry, not an order, until we confirm.'}</p>
+    </section>
+  </div>;
 }
 
 function Home() {
-  const [formStatus, setFormStatus] = useState('');
-  const [selectedProduct, setSelectedProduct] = useState('');
+  const [lang, setLang] = useState<Lang>('da');
+  const [category, setCategory] = useState<string>('Alle');
+  const [askedBake, setAskedBake] = useState<string | null>(null);
+  const [now, setNow] = useState(() => new Date());
+  const da = lang === 'da';
   useEffect(() => {
-    document.title = 'Jeremys Bread Kitchen — slow bread, close to home';
-    setMeta('description', 'Organic artisan bread and pastries, handmade in small batches in Åbyhøj, Aarhus. Discover this week’s bakes, request a pre-order, or plan a visit.');
-    setMeta('og:title', 'Jeremys Bread Kitchen — slow bread, close to home', true);
-    setMeta('og:description', 'A neighborhood bakery in Åbyhøj, Aarhus. Organic ingredients, long fermentation, and bread made by hand.', true);
-    setMeta('og:type', 'website', true);
+    const timer = window.setInterval(() => setNow(new Date()), 60_000);
+    return () => window.clearInterval(timer);
   }, []);
-
-  function submitPreorder(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const form = new FormData(event.currentTarget);
-    const product = String(form.get('product'));
-    const quantity = String(form.get('quantity'));
-    const pickup = String(form.get('pickup'));
-    const name = String(form.get('name'));
-    const contact = String(form.get('contact'));
-    const details = String(form.get('details') || '').trim();
-    const subject = `Pre-order request — ${product}`;
-    const body = [
-      'Hello Jeremys,',
-      '',
-      'I would like to ask about a pre-order:',
-      `Product: ${product}`,
-      `Quantity: ${quantity}`,
-      `Preferred pickup date: ${pickup}`,
-      `Name: ${name}`,
-      `Contact: ${contact}`,
-      ...(details ? [`Additional note: ${details}`] : []),
-      '',
-      'I understand availability and acceptance are confirmed by Jeremys.',
-    ].join('\n');
-    setFormStatus('Your email draft is ready. Please send it to complete your request; Jeremys will confirm availability and acceptance.');
-    window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-  }
-
-  function submitInquiry(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const form = new FormData(event.currentTarget);
-    const name = String(form.get('inquiry-name'));
-    const replyTo = String(form.get('inquiry-email'));
-    const type = String(form.get('inquiry-type'));
-    const message = String(form.get('inquiry-message'));
-    const subject = `${type} — ${name}`;
-    const body = ['Hello Jeremys,', '', `Name: ${name}`, `Reply to: ${replyTo}`, `Topic: ${type}`, '', message].join('\n');
-    window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-  }
-
-  function askAboutBake(product: string) {
-    setSelectedProduct(product);
-    document.getElementById('order')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    window.setTimeout(() => document.getElementById('product')?.focus({ preventScroll: true }), 450);
-  }
-
-  return (
-    <div className="site-shell">
-      <div className="topline" data-testid="text-small-batch-note"><span>Organic ingredients</span><i aria-hidden="true" /> <span>Slow fermentation</span><i aria-hidden="true" /> <span>Made by hand in Åbyhøj</span></div>
-      <header className="header" id="home">
-        <a className="wordmark" href="#home" data-testid="link-home-logo" aria-label="Jeremys Bread Kitchen home">
-          <span>jeremys</span><small>bread kitchen · aarhus</small>
-        </a>
-        <nav className="nav" aria-label="Main navigation">
-          <a href="#this-week" data-testid="link-nav-this-week">The bakes</a>
-          <a href="#our-story" data-testid="link-nav-story">Our way</a>
-          <a href="#visit" data-testid="link-nav-visit">Find us</a>
-          <a href="#contact" data-testid="link-nav-contact">Contact</a>
-          <a href="#order" className="nav-order" data-testid="link-nav-order">Ask / pre-order <span aria-hidden="true">↗</span></a>
-        </nav>
-      </header>
-
-      <main>
-        <section className="hero" aria-labelledby="hero-heading">
-          <div className="hero-photo" role="img" aria-label="Fresh artisan bread in the warm light of the bakery" />
-          <div className="hero-wash" />
-          <div className="hero-copy-wrap">
-            <p className="eyebrow">A neighborhood bakery · Åbyhøj, Aarhus</p>
-            <h1 id="hero-heading">Good bread<br />takes <em>its time.</em></h1>
-            <p className="hero-copy">Organic bread, sourdough, pastries and more. Made by hand in small batches, just around the corner.</p>
-            <div className="actions">
-              <a className="button" href="#this-week" data-testid="button-discover-bakes">Meet the bakes <span aria-hidden="true">↘</span></a>
-              <a className="hero-text-link" href="#visit">Come find us <span aria-hidden="true">↗</span></a>
-            </div>
+  useEffect(() => {
+    document.documentElement.lang = lang;
+  }, [lang]);
+  const time = useMemo(() => hoursView(cfg.hours, lang, now), [lang, now]);
+  const products = useMemo(() => Object.entries(names).flatMap(([group, items]) => items.map((name) => ({ group, name }))).filter((item) => category === 'Alle' || item.group === category), [category]);
+  const openChoices = (name?: string) => setAskedBake(name ?? 'general');
+  const labelName = (name: string) => da ? name : (englishNames[name] ?? name);
+  const messenger = cfg.messengerUrl.trim();
+  const awards = da ? ['Stiftstidende: Byens Bedste 2026', '90–100% økologi'] : ['Stiftstidende: Best in the City 2026', '90–100% organic'];
+  const currentBakes = cfg.todayBakes;
+  return <div className="site-shell">
+    <div className="topline" data-testid="text-topline"><span>{da ? 'Økologiske råvarer' : 'Organic ingredients'}</span><i aria-hidden="true" /><span>{da ? 'Lang fermentering' : 'Slow fermentation'}</span><i aria-hidden="true" /><span>{da ? 'Bagt i Åbyhøj' : 'Baked in Åbyhøj'}</span></div>
+    <header className="header" id="home">
+      <a className="wordmark" href="#home" aria-label={da ? 'Jeremys Bread Kitchen hjem' : 'Jeremys Bread Kitchen home'} data-testid="link-home-logo"><span>jeremys</span><small>bread kitchen · aarhus</small></a>
+      <nav className="nav" aria-label={da ? 'Hovednavigation' : 'Main navigation'}>
+        <a href="#this-week" data-testid="link-nav-bakes">{da ? 'Brødet' : 'The bakes'}</a><a href="#process" data-testid="link-nav-process">{da ? 'Vores håndværk' : 'Our craft'}</a><a href="#our-story" data-testid="link-nav-story">{da ? 'Jeremy og Mette' : 'Our story'}</a><a href="#visit" data-testid="link-nav-visit">{da ? 'Find os' : 'Find us'}</a><a href="#contact" className="nav-order" data-testid="link-nav-contact">{da ? 'Spørg os' : 'Get in touch'} ↗</a>
+        <div className="language-switch" aria-label="Language"><button type="button" aria-pressed={da} onClick={() => setLang('da')} data-testid="button-language-da">DA</button><span>/</span><button type="button" aria-pressed={!da} onClick={() => setLang('en')} data-testid="button-language-en">EN</button></div>
+      </nav>
+    </header>
+    <main>
+      <section className="hero" aria-labelledby="hero-heading">
+        <div className="hero-photo" role="img" aria-label={da ? 'Friskbagt brød i Jeremys bageri' : 'Freshly baked bread at Jeremys bakery'} /><div className="hero-wash" />
+        <div className="hero-copy-wrap">
+          <p className="eyebrow">{da ? 'Et lille bageri · Åbyhøj, Aarhus' : 'A neighbourhood bakery · Åbyhøj, Aarhus'}</p>
+          <h1 id="hero-heading">{da ? <>Godt brød<br />tager <em>sin tid.</em></> : <>Good bread<br />takes <em>its time.</em></>}</h1>
+          <div className="hero-facts">
+            <p className="hero-address" data-testid="text-hero-address">Yrsavej 34<br />8230 Åbyhøj, Aarhus</p>
+            <div className="hero-hours" data-testid="status-opening-hours"><strong>{time.status}</strong><span>{time.today ? `${da ? 'I dag' : 'Today'} · ${time.today}` : (da ? 'Åbningstider opdateres' : 'Hours to be updated')}</span><details open={!da}><summary>{da ? 'Se alle dage' : 'Opening hours'}</summary><ul>{time.list.map((row) => <li key={row}>{row}</li>)}</ul>{cfg.holidayClosedNote.trim() && <p>{cfg.holidayClosedNote}</p>}</details></div>
+            <p className="hero-copy">{da ? 'Økologisk bagværk i små hold, bagt med omhu i Åbyhøj.' : 'Organic small-batch bakery in Åbyhøj, Aarhus'}</p>
           </div>
-          <div className="hero-side-note"><span>Small batch</span><span className="hero-side-rule" /><span>Åbyhøj · Aarhus</span></div>
-          <a className="hero-scroll" href="#this-week" aria-label="Scroll to this week's bakes"><span>Down to the good stuff</span><b aria-hidden="true">↓</b></a>
-          <div className="hero-counter">01 <span>/</span> MADE WITH TIME</div>
-        </section>
-
-        <div className="ticker" aria-label="Our approach">
-          <div className="ticker-track" aria-hidden="true">
-            {Array.from({ length: 4 }, (_, index) => <span className="ticker-set" key={index}><span>Long fermentation</span><b>✳</b><span>Organic ingredients</span><b>✳</b><span>Hands in the dough</span><b>✳</b><span>Made in Åbyhøj</span><b>✳</b></span>)}
-          </div>
+          <div className="actions"><a className="button" href="#this-week" data-testid="button-discover-bakes">{da ? 'Se dagens brød' : 'See today’s bakes'} <span>↘</span></a><a className="hero-text-link" href={maps} target="_blank" rel="noopener noreferrer" data-testid="link-hero-directions">{da ? 'Find vej' : 'Directions'} ↗</a></div>
+          <div className="hero-contact-links"><a href={`tel:${phone}`} data-testid="link-hero-call">{da ? 'Ring' : 'Call'}</a><a href={sms} data-testid="link-hero-sms">SMS</a>{messenger ? <a href={messenger} target="_blank" rel="noopener noreferrer" data-testid="link-hero-messenger">Messenger</a> : <span aria-disabled="true" data-testid="text-messenger-unconfigured">Messenger · {da ? 'ikke opsat' : 'not set up'}</span>}</div>
+          <div className="award-row">{awards.map((award) => <span className="award-mark" key={award} data-testid={`text-award-${award.slice(0, 3)}`}>{award}</span>)}</div>
         </div>
+        <div className="hero-side-note"><span>{da ? 'Små hold' : 'Small batch'}</span><span className="hero-side-rule" /><span>Åbyhøj · Aarhus</span></div>
+        <a className="hero-scroll" href="#this-week" aria-label={da ? 'Gå til dagens bagværk' : 'Scroll to today’s bakes'} data-testid="link-hero-scroll"><span>{da ? 'Dagens bagværk' : 'Today’s bakes'}</span><b aria-hidden="true">↓</b></a>
+        <div className="hero-counter">01 <span>/</span> {da ? 'BAGT MED TID' : 'MADE WITH TIME'}</div>
+      </section>
 
-        <section className="section weekly" id="this-week" aria-labelledby="week-heading">
-          <div className="section-inner">
-            <div className="section-heading">
-              <div><p className="eyebrow">A changing little menu</p><h2 id="week-heading">What we make,<br /><em>when it’s ready.</em></h2></div>
-              <p className="section-intro">A small-batch bakery follows the dough, the day, and what there is time to make. Get in touch to find out what is coming out of the oven now.</p>
-            </div>
-            <div className="weekly-board">
-              <div className="weekly-feature">
-                <span className="board-index">A NOTE FROM THE OVEN / 01</span>
-                <h3>Small batches.<br />When they’re gone,<br />they’re gone.</h3>
-                <p>Our bread and pastries are made in limited quantities. Ask ahead so we can let you know what is available and whether we can set something aside.</p>
-              </div>
-              <div className="week-side">
-                <span className="stamp">No live menu here</span>
-                <p>We make what we can make well. When a batch is gone, it is gone until the next time the dough is ready.</p>
-                <a href={`mailto:${email}?subject=${encodeURIComponent('This week at Jeremys')}`} className="text-link" data-testid="link-ask-this-week">Ask what’s baking this week <span aria-hidden="true">↗</span></a>
-              </div>
-            </div>
-            <div className="bake-grid" aria-label="Bake categories">
-              {bakeCards.map((bake, index) => (
-                <article className="bake-card" key={bake.name} data-testid={`card-product-${bake.name.toLowerCase().replace(' ', '-')}`}>
-                  <div className="bake-photo-wrap">
-                    <img className="bake-photo" src={`/images/${bake.image}`} alt={bake.alt} loading="lazy" />
-                    <span className="bake-number">0{index + 1}</span>
-                    <span className="bake-photo-label">From the oven</span>
-                  </div>
-                  <div className="bake-card-copy">
-                    <div className="bake-card-title"><h3>{bake.name}</h3><span>Ask for today’s price</span></div>
-                    <p>{bake.description}</p>
-                    <div className="bake-card-foot"><span>{bake.note}</span><button type="button" className="card-action" onClick={() => askAboutBake(bake.name)} data-testid={`button-ask-${bake.name.toLowerCase().replace(' ', '-')}`}>Ask about this bake <span aria-hidden="true">↗</span></button></div>
-                  </div>
-                </article>
-              ))}
-            </div>
-            <p className="disclaimer" data-testid="text-availability-note">Availability and prices vary and must be confirmed directly with Jeremys. This page is a guide to what the bakery makes, not a live menu or stock list.</p>
-          </div>
-        </section>
+      <section className="section weekly daily-section" id="this-week" aria-labelledby="week-heading">
+        <div className="section-inner">
+          <div className="section-heading"><div><p className="eyebrow">{da ? 'Et lille udvalg, der skifter' : 'A small, changing selection'}</p><h2 id="week-heading">{da ? <>I dag hos<br /><em>Jeremys</em></> : <>Today at<br /><em>Jeremys</em></>}</h2></div><p className="section-intro">{da ? 'Udvalget følger dejen og dagen. Spørg os, hvad der er klar.' : 'The selection follows the dough and the day. Ask what is ready.'}</p></div>
+          <div className="daily-grid" data-testid="content-daily-bakes">{currentBakes.map((bake, index) => <article className="daily-card" key={bake.name} data-testid={`card-daily-${index}`}>
+            <div className="daily-image"><img src={bake.image} alt={da ? `${bake.name} fra dagens bageudvalg` : `${bake.name}, a draft from today’s bake selection`} width="480" height="480" loading="lazy" /><span className="bake-number">0{index + 1}</span></div>
+            <div className="daily-copy"><h3>{labelName(bake.name)}</h3><span className={`status-pill ${bake.status ? 'status-confirmed' : ''}`} data-testid={`status-daily-${index}`}>{bake.status ? (da ? bake.status : ({ 'Bagt i dag': 'Baked today', 'Kommer senere': 'Coming later', Udsolgt: 'Sold out' } as Record<string, string>)[bake.status]) : (da ? 'Spørg os' : 'Ask us')}</span></div>
+          </article>)}</div>
+          <p className="daily-note" data-testid="text-daily-note">{da ? 'Priser får du i butikken eller på telefon. Udvalget skifter fra dag til dag.' : 'Ask in the shop or by phone for prices. The selection changes from day to day.'}</p>
+        </div>
+      </section>
 
-        <section className="story" id="our-story" aria-labelledby="story-heading">
-          <div className="story-image" role="img" aria-label="A close view of artisan bread and flour on the workbench" />
-          <div className="story-copy">
-            <p className="eyebrow">Our story, in the dough</p>
-            <h2 id="story-heading">Good things<br />aren’t rushed.</h2>
-            <p>Jeremys Bread Kitchen is an independent neighborhood bakery in Åbyhøj. We work with organic ingredients, long fermentation and hands-on methods, making bread and pastries in careful small batches.</p>
-            <p>There is no need for every loaf to look exactly alike. Each one gets its own time and care, and the day’s baking is shaped by what is ready. Come by for a quick stop, or say hello and ask what is in the works.</p>
-            <div className="story-signoff">See you around the oven.</div>
-            <span className="story-marginalia">Flour · water · patience</span>
-          </div>
-        </section>
+      <section className="section catalog-section" aria-labelledby="catalog-heading">
+        <div className="section-inner">
+          <div className="section-heading"><div><p className="eyebrow">{da ? 'Bageriets udkast · bekræft med os' : 'Bakery drafts · please confirm with us'}</p><h2 id="catalog-heading">{da ? <>Fra vores<br /><em>ovn.</em></> : <>From our<br /><em>oven.</em></>}</h2></div><div className="catalog-intro"><p className="section-intro">{da ? 'En oversigt over det, vi bager. Navnene er forslag og ikke en aktuel lagerliste.' : 'A guide to what we bake. Names are drafts, not a live stock list.'}</p><p className="allergen-note">{da ? 'Spørg os om allergener.' : 'Ask us about allergens.'}</p></div></div>
+          <div className="filter-chips" role="group" aria-label={da ? 'Filtrér bagværk' : 'Filter bakes'}>{['Alle', ...categories].map((item) => <button type="button" key={item} className={category === item ? 'filter-chip active' : 'filter-chip'} aria-pressed={category === item} onClick={() => setCategory(item)} data-testid={`button-filter-${item}`}>{da ? item : categoryEn[item]}</button>)}</div>
+          <div className="bake-grid catalog-grid" data-testid="content-bake-catalog">{products.map(({ group, name }, index) => <article className="bake-card" key={name} data-testid={`card-product-${index}`}>
+            <div className="bake-photo-wrap"><img className="bake-photo" src={imageForCategory[group]} alt={da ? `Foto af ${name.toLowerCase()}` : `Photo of ${labelName(name).toLowerCase()}`} width="640" height="450" loading="lazy" /><span className="bake-number">{da ? group : categoryEn[group]}</span></div>
+            <div className="bake-card-copy"><div className="bake-card-title"><h3>{labelName(name)}</h3><span>{da ? 'Udkast' : 'Draft'}</span></div><p>{description(lang, group)}</p><div className="bake-card-foot"><span>{da ? 'Ikke en live lagerliste' : 'Not a live stock list'}</span><button type="button" className="card-action" onClick={() => openChoices(name)} data-testid={`button-ask-bake-${index}`}>{da ? 'Spørg om det' : 'Ask about it'} <span aria-hidden="true">↗</span></button></div></div>
+          </article>)}</div>
+          <p className="disclaimer" data-testid="text-draft-note">{da ? 'Bagværksnavnene er udkast til ejerbekræftelse. Spørg os om dagens udvalg og tilgængelighed.' : 'Bake names are drafts for owner confirmation. Ask us about today’s selection and availability.'}</p>
+        </div>
+      </section>
 
-        <section className="customer-love" aria-labelledby="customer-love-heading">
-          <div className="review-orbit" aria-hidden="true">
-            <div className="review-orbit-ring" />
-            <div className="review-orbit-core"><span>Local voices</span><b>Å</b><span>Find them yourself</span></div>
-            <span className="orbit-word orbit-word-one">CURIOUS?</span>
-            <span className="orbit-word orbit-word-two">NO MADE-UP REVIEWS</span>
-            <span className="orbit-dot dot-one" /><span className="orbit-dot dot-two" /><span className="orbit-dot dot-three" />
-          </div>
-          <div className="customer-love-copy">
-            <p className="eyebrow">A neighborhood bakery is made together</p>
-            <h2 id="customer-love-heading">The best word<br />travels <em>locally.</em></h2>
-            <p>We’d rather let real customers speak for themselves. Find Jeremys’ public reviews, or get in touch with us directly.</p>
-            <a className="text-link" href="https://www.google.com/search?q=Jeremys+Bread+Kitchen+Aarhus+reviews" target="_blank" rel="noreferrer" data-testid="link-customer-reviews">Look for public reviews on Google <span aria-hidden="true">↗</span></a>
-            <span className="review-footnote">No review excerpts or scores reproduced here.</span>
-          </div>
-        </section>
+      <section className="process-section" id="process" aria-labelledby="process-heading">
+        <div className="process-copy"><p className="eyebrow">{da ? 'Tid gør forskellen' : 'Time makes the difference'}</p><h2 id="process-heading">{da ? <>Sådan<br />bager <em>vi.</em></> : <>How we<br /><em>bake.</em></>}</h2><p>{da ? 'Vi arbejder med økologisk mel og langsom fermentering. Dejen får tid, og hvert hold bliver formet og bagt med hænderne.' : 'We work with organic flour and slow fermentation. The dough takes its time, and each small batch is handled by hand.'}</p></div>
+        <div className="process-grid">{[
+          ['process-dough.webp', da ? 'Dej formes på arbejdsbordet' : 'Dough shaped on the workbench', da ? 'Dej' : 'Dough'],
+          ['process-trays.webp', da ? 'Brøddej lagt på bageplader' : 'Bread dough arranged on trays', da ? 'Plader' : 'Trays'],
+          ['process-ovens.webp', da ? 'Bageriets ovne' : 'The bakery ovens', da ? 'Ovne' : 'Ovens'],
+          ['process-racks.webp', da ? 'Bageriets bage- og afkølingsracks' : 'Bakery baking and cooling racks', da ? 'Racks' : 'Racks'],
+        ].map(([file, alt, caption], index) => <figure key={file}><img src={`/images/${file}`} alt={alt} width="640" height="420" loading="lazy" data-testid={`image-process-${index}`} /><figcaption>0{index + 1} · {caption}</figcaption></figure>)}</div>
+      </section>
 
-        <section className="order-section" id="order" aria-labelledby="order-heading">
-          <div className="section-inner order-grid">
-            <div className="order-copy">
-              <p className="eyebrow">Start with a note</p>
-              <h2 id="order-heading">Ask for a<br /><em>pre-order.</em></h2>
-              <p>Tell us what you have in mind. This form prepares an email request to the bakery, so we can check what is possible and get back to you.</p>
-              <p className="hero-note">Sending a request does not confirm availability or reserve an item. Jeremys will confirm acceptance directly.</p>
-              <div className="order-aside"><span>✳</span><p>Every request is a conversation—not an order until Jeremys confirms.</p></div>
-            </div>
-            <form className="order-card" onSubmit={submitPreorder} data-testid="form-preorder">
-              <div className="form-heading"><span>01 — PRE-ORDER REQUEST</span><span>EMAIL ONLY</span></div>
-              <div className="form-grid">
-                <div className="field full">
-                  <label htmlFor="product">What would you like to ask about?</label>
-                  <select id="product" name="product" value={selectedProduct} onChange={(event) => setSelectedProduct(event.target.value)} required data-testid="input-product">
-                    <option value="" disabled>Choose a bake</option>
-                    {productOptions.map((product) => <option key={product} value={product}>{product}</option>)}
-                  </select>
-                </div>
-                <div className="field">
-                  <label htmlFor="quantity">Quantity</label>
-                  <input id="quantity" name="quantity" type="number" min="1" max="99" defaultValue="1" required data-testid="input-quantity" />
-                </div>
-                <div className="field">
-                  <label htmlFor="pickup">Preferred pickup date</label>
-                  <input id="pickup" name="pickup" type="date" required data-testid="input-pickup-date" />
-                </div>
-                <div className="field">
-                  <label htmlFor="name">Your name</label>
-                  <input id="name" name="name" type="text" autoComplete="name" required placeholder="Name" data-testid="input-name" />
-                </div>
-                <div className="field">
-                  <label htmlFor="contact-detail">Email or phone</label>
-                  <input id="contact-detail" name="contact" type="text" autoComplete="email" required placeholder="How to reach you" data-testid="input-contact" />
-                </div>
-                <div className="field full">
-                  <label htmlFor="details">A note, if you like</label>
-                  <textarea id="details" name="details" placeholder="Anything else we should know?" data-testid="input-order-note" />
-                </div>
-              </div>
-              <p className="form-foot">Your email app will open with the request prepared for kontakt@jeremys.dk. No payment is taken here. Availability, price and acceptance are confirmed by Jeremys.</p>
-              <button type="submit" className="button" data-testid="button-send-preorder">Prepare email request <span aria-hidden="true">↗</span></button>
-              {formStatus && <p className="form-status" role="status" data-testid="status-preorder">{formStatus}</p>}
-            </form>
-          </div>
-        </section>
+      <section className="story" id="our-story" aria-labelledby="story-heading">
+        <div className="story-image"><img src="/images/jeremys-team.webp" alt={da ? 'Jeremy og Mette i bageriet' : 'Jeremy and Mette at the bakery'} width="640" height="640" loading="lazy" data-testid="image-team" /></div>
+        <div className="story-copy"><p className="eyebrow">{da ? 'To mennesker, ét bageri' : 'Two people, one bakery'}</p><h2 id="story-heading">{da ? <>Mød Jeremy<br />og <em>Mette.</em></> : <>Meet Jeremy<br />and <em>Mette.</em></>}</h2>
+          <div className="edit-copy"><p><b>EDIT</b> {da ? 'Skriv med egne ord, hvordan I fandt vej til bageriet.' : 'Rewrite in your own words how you found your way to the bakery.'}</p><p><b>EDIT</b> {da ? 'Fortæl kort om jeres tilgang til brød og bagning.' : 'Share a little about your approach to bread and baking.'}</p><p><b>EDIT</b> {da ? 'Tilføj en detalje fra hverdagen i bageriet.' : 'Add a detail from a day at the bakery.'}</p></div>
+          <div className="timeline" data-testid="text-bakery-timeline">Mejlgade <span>→</span> Yrsavej</div>
+        </div>
+      </section>
 
-        <section className="visit" id="visit" aria-labelledby="visit-heading">
-          <div className="visit-image" role="img" aria-label="Warmly lit bakery counter with fresh loaves" />
-          <div className="visit-copy">
-            <p className="eyebrow">A little detour to Åbyhøj</p>
-            <h2 id="visit-heading">Aarhus,<br />a few good loaves.</h2>
-            <p>Find the bakery in Åbyhøj. Before setting off, check with us about this week’s availability and hours; they are not listed here and may change.</p>
-            <div className="address" data-testid="text-bakery-address">Jeremys Bread Kitchen<br />Yrsavej 34<br />8230 Åbyhøj, Aarhus<br />Denmark</div>
-            <p className="hours-note">Please check this week’s opening hours by email or Facebook before your visit.</p>
-            <div className="actions">
-              <a className="button" href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`} target="_blank" rel="noreferrer" data-testid="link-directions">Directions on Google Maps <span aria-hidden="true">↗</span></a>
-              <a className="button button-outline" href={`tel:${phone.replaceAll(' ', '')}`} data-testid="link-call-bakery">Call the bakery</a>
-            </div>
-          </div>
-        </section>
+      <section className="customer-love" aria-labelledby="customer-love-heading">
+        <div className="review-orbit" aria-hidden="true"><div className="review-orbit-ring" /><div className="review-orbit-core"><span>{da ? 'Lokalt bagværk' : 'Local baking'}</span><b>Å</b><span>{da ? 'Aarhus' : 'Aarhus'}</span></div><span className="orbit-word orbit-word-one">{da ? 'BYENS BEDSTE' : 'BEST IN TOWN'}</span><span className="orbit-word orbit-word-two">2026</span><span className="orbit-dot dot-one" /><span className="orbit-dot dot-two" /><span className="orbit-dot dot-three" /></div>
+        <div className="customer-love-copy"><p className="eyebrow">{da ? 'Et lokalt skulderklap' : 'A local nod'}</p><h2 id="customer-love-heading">{da ? <>Byens<br /><em>Bedste.</em></> : <>Best in<br /><em>town.</em></>}</h2><p>{da ? 'Stiftstidende: Byens Bedste 2026. Anmeldelser kan læses hos Google.' : 'Stiftstidende: Best in the City 2026. Read reviews on Google.'}</p><a className="text-link" href="https://www.google.com/search?q=Jeremys+Bread+Kitchen+Aarhus+reviews" target="_blank" rel="noopener noreferrer" data-testid="link-customer-reviews">{da ? 'Se anmeldelser på Google' : 'See reviews on Google'} ↗</a><p className="review-edit"><b>EDIT</b> {da ? 'Plads til ægte kundeudtalelser – kun med kundens tilladelse.' : 'Space for real customer quotes — only with permission.'}</p></div>
+      </section>
 
-        <section className="community" aria-labelledby="community-heading">
-          <div className="community-mark" aria-hidden="true">J<span>·</span>B</div>
-          <p className="eyebrow">Keep up with the bake</p>
-          <h2 id="community-heading">The next batch<br />starts with a hello.</h2>
-          <p>For this week’s bakes and hours, look for Jeremys Bread Kitchen on Facebook or ask us directly. No account link is listed here; contact us if you need the latest word from the oven.</p>
-          <div className="community-actions">
-            <a className="button" href="https://www.facebook.com/search/top?q=Jeremys%20Bread%20Kitchen%20Aarhus" target="_blank" rel="noreferrer" data-testid="link-facebook-discovery">Find us on Facebook <span aria-hidden="true">↗</span></a>
-            <a className="button button-outline" href={`mailto:${email}?subject=${encodeURIComponent('A note for Jeremys')}`} data-testid="link-community-email">Send a note</a>
-          </div>
-        </section>
+      <section className="contact" id="contact" aria-labelledby="contact-heading"><div className="section-inner contact-grid">
+        <div className="contact-intro"><p className="eyebrow">{da ? 'Et spørgsmål er altid velkomment' : 'Questions are always welcome'}</p><h2 id="contact-heading">{da ? <>Spørg efter<br /><em>brød.</em></> : <>Ask about<br /><em>bread.</em></>}</h2><p className="section-intro">{da ? 'Ring eller skriv, hvis du vil høre om dagens bagværk.' : 'Call or text if you would like to ask about today’s bakes.'}</p></div>
+        <div className="contact-details"><div className="contact-cta"><a href={`tel:${phone}`} className="button contact-button" data-testid="button-contact-call">{da ? 'Ring' : 'Call'} <span>↗</span></a><a href={sms} className="button button-outline contact-button" data-testid="button-contact-sms">SMS <span>↗</span></a>{messenger ? <a href={messenger} target="_blank" rel="noopener noreferrer" className="button button-outline contact-button" data-testid="button-contact-messenger">Messenger <span>↗</span></a> : <span className="button button-outline contact-button disabled-choice" aria-disabled="true" data-testid="button-contact-messenger-disabled">Messenger · {da ? 'ikke opsat' : 'not set up'}</span>}</div><p className="request-note contact-request-note" data-testid="text-inquiry-note">{da ? 'Det er en forespørgsel, ikke en bestilling, før vi bekræfter.' : 'This is an inquiry, not an order, until we confirm.'}</p></div>
+      </div></section>
 
-        <section className="contact" id="contact" aria-labelledby="contact-heading">
-          <div className="section-inner contact-grid">
-            <div className="contact-intro">
-              <p className="eyebrow">Questions, requests, or just hello</p>
-              <h2 id="contact-heading">We’re easy<br />to reach.</h2>
-              <p className="section-intro">Ask about this week, check hours before visiting, or tell us what you would like to request. We’ll confirm what is possible.</p>
-              <div className="contact-flour">a note is always welcome <span aria-hidden="true">↗</span></div>
-            </div>
-            <div className="contact-details">
-              <div className="contact-links">
-                <a href={`mailto:${email}`} data-testid="link-email"><span>{email}</span><span aria-hidden="true">↗</span></a>
-                <a href={`tel:${phone.replaceAll(' ', '')}`} data-testid="link-phone"><span>{phone}</span><span aria-hidden="true">↗</span></a>
-                <a href={`mailto:${email}?subject=${encodeURIComponent('General question for Jeremys')}&body=${encodeURIComponent('Hello Jeremys,\n\n')}`} data-testid="link-general-inquiry"><span>General inquiry / special order</span><span aria-hidden="true">Write an email ↗</span></a>
-                <a href="https://www.google.com/maps/search/?api=1&query=Jeremys%20Bread%20Kitchen%2C%20Yrsavej%2034%2C%208230%20%C3%85byh%C3%B8j%2C%20Aarhus" target="_blank" rel="noreferrer" data-testid="link-map-contact"><span>Yrsavej 34, 8230 Åbyhøj, Aarhus</span><span aria-hidden="true">Map ↗</span></a>
-                <a href="https://www.google.com/search?q=Jeremys+Bread+Kitchen+Aarhus+reviews" target="_blank" rel="noreferrer" data-testid="link-public-reviews"><span>Discover public reviews</span><span aria-hidden="true">Google search ↗</span></a>
-              </div>
-              <form className="inquiry-card" onSubmit={submitInquiry} data-testid="form-contact">
-                <p className="eyebrow">Something on your mind?</p>
-                <h3>Send a note</h3>
-                <div className="form-grid">
-                  <div className="field">
-                    <label htmlFor="inquiry-name">Your name</label>
-                    <input id="inquiry-name" name="inquiry-name" type="text" autoComplete="name" required placeholder="Name" data-testid="input-inquiry-name" />
-                  </div>
-                  <div className="field">
-                    <label htmlFor="inquiry-email">Email</label>
-                    <input id="inquiry-email" name="inquiry-email" type="email" autoComplete="email" required placeholder="you@example.com" data-testid="input-inquiry-email" />
-                  </div>
-                  <div className="field full">
-                    <label htmlFor="inquiry-type">What can we help with?</label>
-                    <select id="inquiry-type" name="inquiry-type" defaultValue="" required data-testid="input-inquiry-type">
-                      <option value="" disabled>Choose a topic</option>
-                      {inquiryTypes.map((type) => <option value={type} key={type}>{type}</option>)}
-                    </select>
-                  </div>
-                  <div className="field full">
-                    <label htmlFor="inquiry-message">Your message</label>
-                    <textarea id="inquiry-message" name="inquiry-message" required placeholder="Tell us a little about what you have in mind." data-testid="input-inquiry-message" />
-                  </div>
-                </div>
-                <p className="form-foot">Your email app will open with a message addressed to {email}. Jeremys will reply to confirm what is possible.</p>
-                <button type="submit" className="button" data-testid="button-send-inquiry">Prepare message <span aria-hidden="true">↗</span></button>
-              </form>
-            </div>
-          </div>
-        </section>
-      </main>
-
-      <footer className="footer">
-        <a className="footer-mark" href="#home">jeremys <span>bread kitchen · aarhus</span></a>
-        <span>Åbyhøj, Aarhus · Small batches. A little patience. Good bread.</span>
-        <a href="#home" className="back-top">Back to top ↑</a>
-      </footer>
-      <div className="mobile-order"><a href="#order" className="button" data-testid="button-mobile-order">Ask for a pre-order <span aria-hidden="true">↗</span></a></div>
-    </div>
-  );
+      <section className="visit" id="visit" aria-labelledby="visit-heading"><div className="visit-image"><img src="/images/jeremys-hero.jpg" alt={da ? 'Indgangen til Jeremys Bread Kitchen i Åbyhøj' : 'The entrance to Jeremys Bread Kitchen in Åbyhøj'} width="900" height="700" loading="lazy" data-testid="image-shopfront" /></div>
+        <div className="visit-copy"><p className="eyebrow">{da ? 'Kig forbi i Åbyhøj' : 'Find us in Åbyhøj'}</p><h2 id="visit-heading">{da ? <>Find vej<br />til <em>os.</em></> : <>Come find<br /><em>us.</em></>}</h2><div className="address" data-testid="text-bakery-address">Jeremys Bread Kitchen<br />Yrsavej 34<br />8230 Åbyhøj, Aarhus</div>
+          <div className="visit-hours"><strong data-testid="status-visit-hours">{time.status}</strong><ul>{time.list.map((row) => <li key={row}>{row}</li>)}</ul>{cfg.holidayClosedNote.trim() && <p>{cfg.holidayClosedNote}</p>}</div>
+          <p className="visit-edit"><b>EDIT</b> {cfg.visitNote.trim() || (da ? 'Parkering / besøgsnote – tilføjes af bageriet.' : 'Parking / visitor note – to be added by the bakery.')}</p>
+          <div className="actions"><a className="button" href={maps} target="_blank" rel="noopener noreferrer" data-testid="link-directions">{da ? 'Find vej' : 'Directions'} ↗</a><a className="button button-outline" href={`tel:${phone}`} data-testid="link-call-bakery">{da ? 'Ring til bageriet' : 'Call the bakery'}</a></div>
+        </div>
+      </section>
+    </main>
+    <footer className="footer"><a className="footer-mark" href="#home" data-testid="link-footer-home">jeremys <span>bread kitchen · aarhus</span></a><span>{da ? 'Åbyhøj, Aarhus · Små hold, godt brød.' : 'Åbyhøj, Aarhus · Small batches, good bread.'}</span><a href="#home" className="back-top" data-testid="link-back-top">{da ? 'Til toppen ↑' : 'Back to top ↑'}</a></footer>
+    <div className="mobile-order" aria-label={da ? 'Hurtige kontaktlinks' : 'Quick contact links'}><a href={`tel:${phone}`} data-testid="link-mobile-call">{da ? 'Ring' : 'Call'}</a><a href={maps} target="_blank" rel="noopener noreferrer" data-testid="link-mobile-directions">{da ? 'Find vej' : 'Directions'}</a><a href="#contact" data-testid="link-mobile-ask">{da ? 'Spørg' : 'Ask'}</a></div>
+    {askedBake && <ContactChoices lang={lang} onClose={() => setAskedBake(null)} />}
+  </div>;
 }
 
-function App() {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <ErrorBoundary>
-          <Home />
-        </ErrorBoundary>
-        <Toaster />
-      </TooltipProvider>
-    </QueryClientProvider>
-  );
+export default function App() {
+  return <ErrorBoundary><Home /></ErrorBoundary>;
 }
-
-export default App;
