@@ -8,6 +8,7 @@
 .jk-redesign .eyebrow { margin:0 0 22px; color:#ad3d2b; font:9px 'DM Mono',monospace; letter-spacing:.17em; text-transform:uppercase; }
 .jk-redesign .hero .eyebrow { color:#f0cf65; }
 .jk-redesign .hero h1 { margin:0; font:clamp(70px,9.3vw,138px)/.84 'Fraunces',serif; font-weight:500; letter-spacing:-.075em; }
+.jk-redesign .hero h1, .jk-redesign .customer-love h2 { word-spacing:.09em; }
 .jk-redesign .hero h1 em { color:#f0cc50; font-weight:500; }
 .jk-redesign .hero-copy { max-width:390px; margin:25px 0 26px; color:rgba(255,246,231,.87); font-size:14px; line-height:1.8; }
 .jk-redesign .actions { display:flex; flex-wrap:wrap; gap:18px; align-items:center; }

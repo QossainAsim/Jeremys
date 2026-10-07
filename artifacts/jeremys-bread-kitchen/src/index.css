@@ -160,6 +160,7 @@ button, input, select, textarea { font: inherit; }
 .section-inner { max-width: 1240px; margin: auto; }
 .section-heading { display: flex; justify-content: space-between; align-items: end; gap: 30px; margin-bottom: 50px; }
 .section h2, .customer-love h2, .story-copy h2, .visit-copy h2, .contact h2 { margin: 0; font: clamp(55px, 7.5vw, 98px)/.9 'Fraunces', serif; font-weight: 500; letter-spacing: -.07em; }
+.hero h1, .section h2, .weekly-feature h3, .story-copy h2, .customer-love h2, .order-copy h2, .visit-copy h2, .community h2, .contact h2 { word-spacing: .09em; }
 .section h2 em { color: var(--clay); }
 .section-intro { max-width: 345px; margin: 0 2% 3px 0; color: #706050; font-size: 13px; line-height: 1.8; }
 .weekly { background: var(--green); color: #f4eddf; }
@@ -231,7 +232,7 @@ button, input, select, textarea { font: inherit; }
 .order-grid { display: grid; grid-template-columns: .78fr 1.22fr; gap: 9%; align-items: start; max-width: 1200px; margin: auto; }
 .order-copy { position: sticky; top: 35px; }
 .order-copy .eyebrow { color: var(--clay); }
-.order-copy h2 { font-size: clamp(59px, 7vw, 91px); }
+.order-copy h2 { font-size: clamp(58px, 6.4vw, 82px); }
 .order-copy h2 em { color: var(--clay); }
 .order-copy > p { max-width: 350px; color: #756451; font-size: 13px; line-height: 1.8; }
 .order-copy .hero-note { margin-top: 18px; font: 9px/1.7 'DM Mono', monospace; }

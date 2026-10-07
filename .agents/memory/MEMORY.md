@@ -1,0 +1,1 @@
+- [Bakery copy integrity](bakery-copy-integrity.md) — keep customer-facing claims verified; email pre-orders remain requests until Jeremys confirms.
